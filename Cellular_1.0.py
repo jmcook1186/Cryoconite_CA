@@ -9,6 +9,9 @@ import numpy as np
 import matplotlib.pyplot as pyplot
 import copy
 
+from matplotlib.pyplot import *
+from numpy import *
+
 Xlist = []
 XXlist = []
 Ylist = []
@@ -37,7 +40,7 @@ buffer = 6 # size of 'buffer zone' where cryoconite is discarded off grid
 # Set initial conditions
 
 a = np.random.choice([0,1,2,3,4,5,6,7],(Imax,J),p=[1-coverage,coverage/7,coverage/7,coverage/7,coverage/7,coverage/7,coverage/7,coverage/7])
-b = copy.deepcopy(a)
+b = a.copy()
 pyplot.figure(figsize=(12,12))
 imshow(b,cmap='coolwarm') #Greys
 cbar=pyplot.colorbar(ticks=[0,1,2,3,4,5,6,7,8,9],orientation='horizontal')
@@ -140,7 +143,7 @@ def cellrules(Islope,Imax,Idel,del_area,J,coverage,SGLspeed,MGLspeed,flatspeed,b
                         a[i+1,j+1] = a[i+1,j+1]+1
    
 
-    if t % Idel == 0:
+    if T % Idel == 0:
         for i in arange(0,del_area,1):
             for j in arange(0,J-1,1):
                 a[i,j] = np.random.choice([0,1,2,3,4,5,6,7],p=[1-coverage,coverage/7,coverage/7,coverage/7,coverage/7,coverage/7,coverage/7,coverage/7])
