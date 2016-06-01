@@ -8,9 +8,6 @@ Created on Tuesday April 26 07:07:54 2016
 import numpy as np
 import matplotlib.pyplot as pyplot
 
-from matplotlib.pyplot import *
-from numpy import *
-
 import copy
 
 Xlist = []
@@ -40,13 +37,14 @@ buffer = 6 # size of 'buffer zone' where cryoconite is discarded off grid
 
 # Set initial conditions
 
+np.random.seed(0)
 a = np.random.choice([0,1,2,3,4,5,6,7],(Imax,J),p=[1-coverage,coverage/7,coverage/7,coverage/7,coverage/7,coverage/7,coverage/7,coverage/7])
 b = copy.deepcopy(a)
 pyplot.figure(figsize=(12,12))
-imshow(b,cmap='coolwarm') #Greys
+pyplot.imshow(b,cmap='coolwarm') #Greys
 cbar=pyplot.colorbar(ticks=[0,1,2,3,4,5,6,7,8,9],orientation='horizontal')
-tick_params(axis='y',direction='out')
-tick_params(axis='x',direction='out')
+pyplot.tick_params(axis='y',direction='out')
+pyplot.tick_params(axis='x',direction='out')
 #pyplot.savefig('CAmovie0')
 
 
@@ -64,8 +62,8 @@ def cellrules(Islope,Imax,Idel,del_area,J,coverage,SGLspeed,MGLspeed,flatspeed,b
     Z  = 0
     ZZ = 0    
     
-    for i in arange(0,Islope,1):
-        for j in arange(1,J-1,1):
+    for i in np.arange(0,Islope,1):
+        for j in np.arange(1,J-1,1):
 
             Q=np.random.choice([1,2,3],p=(0.34,0.33,0.33))
 
@@ -115,8 +113,8 @@ def cellrules(Islope,Imax,Idel,del_area,J,coverage,SGLspeed,MGLspeed,flatspeed,b
                         a[i+1,j-1] = a[i+1,j-1]+1
          
  
-    for i in arange(Islope-1,Imax-1,1):
-        for j in arange(1,J-1,1):
+    for i in np.arange(Islope-1,Imax-1,1):
+        for j in np.arange(1,J-1,1):
             
             QQQ = np.random.choice((0,1),p=[1-flatspeed,flatspeed])
 
@@ -145,23 +143,23 @@ def cellrules(Islope,Imax,Idel,del_area,J,coverage,SGLspeed,MGLspeed,flatspeed,b
    
 
     if T % Idel == 0:
-        for i in arange(0,del_area,1):
-            for j in arange(0,J-1,1):
+        for i in np.arange(0,del_area,1):
+            for j in np.arange(0,J-1,1):
                 a[i,j] = np.random.choice([0,1,2,3,4,5,6,7],p=[1-coverage,coverage/7,coverage/7,coverage/7,coverage/7,coverage/7,coverage/7,coverage/7])
     
     
-    for i in arange(1,Imax-1,1):
-        for j in arange (1,J-1,1):
+    for i in np.arange(1,Imax-1,1):
+        for j in np.arange (1,J-1,1):
             if a[i,j] < 0:
                a[i,j] = 0
     
-    for i in arange(Imax-buffer,Imax,1):
-        for j in arange (0,J,1):
+    for i in np.arange(Imax-buffer,Imax,1):
+        for j in np.arange (0,J,1):
             a[i,j] = 0
 
    
-    for i in arange(1,Imax-buffer,1):
-        for j in arange(1,J-1,1):
+    for i in np.arange(1,Imax-buffer,1):
+        for j in np.arange(1,J-1,1):
             if a[i,j] >= 1:
                 X=X+1
                 XX = XX + a[i,j]
@@ -170,8 +168,8 @@ def cellrules(Islope,Imax,Idel,del_area,J,coverage,SGLspeed,MGLspeed,flatspeed,b
     XXlist.append(XX)
     
     
-    for i in arange(1,Islope,1):
-        for j in arange(1,J,1):
+    for i in np.arange(1,Islope,1):
+        for j in np.arange(1,J,1):
             if a[i,j] > 0:
                 Y= Y+1
                 YY = YY + a[i,j]
@@ -179,8 +177,8 @@ def cellrules(Islope,Imax,Idel,del_area,J,coverage,SGLspeed,MGLspeed,flatspeed,b
     Ylist.append(Y)
     YYlist.append(YY)
                 
-    for i in arange(Islope,Imax,1):
-        for j in arange(1,J,1):
+    for i in np.arange(Islope,Imax,1):
+        for j in np.arange(1,J,1):
             if a[i,j] > 0:
                 Z = Z+1
                 ZZ = ZZ + a[i,j]
@@ -204,14 +202,14 @@ def cellrules(Islope,Imax,Idel,del_area,J,coverage,SGLspeed,MGLspeed,flatspeed,b
 # Evolve surface over time, plot and save result per timestep
 
 def run(T,Islope,Imax,Idel,del_area,J,coverage,SGLspeed,MGLspeed,flatspeed,buffer):
-    for t in arange(1,T,1):
+    for t in np.arange(1,T,1):
         cellrules(Islope,Imax,Idel,del_area,J,coverage,SGLspeed,MGLspeed,flatspeed,buffer)
         flag = 'CAmovie%s' % str(t)    
         pyplot.figure(figsize=(12,12))
         pyplot.imshow(a,cmap='coolwarm',label=flag)
         cbar=pyplot.colorbar(ticks=[0,1,2,3,4,5,6,7,8,9],orientation='horizontal')
-        tick_params(axis='y',direction='out')
-        tick_params(axis='x',direction='out')
+        pyplot.tick_params(axis='y',direction='out')
+        pyplot.tick_params(axis='x',direction='out')
  #       plt.savefig("%s.png" % flag)
         pyplot.clf # clear fig to prevent T plots being stored in memory
 
