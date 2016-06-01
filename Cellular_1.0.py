@@ -7,10 +7,11 @@ Created on Tuesday April 26 07:07:54 2016
 
 import numpy as np
 import matplotlib.pyplot as pyplot
-import copy
 
 from matplotlib.pyplot import *
 from numpy import *
+
+import copy
 
 Xlist = []
 XXlist = []
@@ -40,7 +41,7 @@ buffer = 6 # size of 'buffer zone' where cryoconite is discarded off grid
 # Set initial conditions
 
 a = np.random.choice([0,1,2,3,4,5,6,7],(Imax,J),p=[1-coverage,coverage/7,coverage/7,coverage/7,coverage/7,coverage/7,coverage/7,coverage/7])
-b = a.copy()
+b = copy.deepcopy(a)
 pyplot.figure(figsize=(12,12))
 imshow(b,cmap='coolwarm') #Greys
 cbar=pyplot.colorbar(ticks=[0,1,2,3,4,5,6,7,8,9],orientation='horizontal')
