@@ -211,7 +211,8 @@ def run(T,Islope,Imax,Idel,del_area,J,coverage,SGLspeed,MGLspeed,flatspeed,buffe
         pyplot.tick_params(axis='y',direction='out')
         pyplot.tick_params(axis='x',direction='out')
  #       plt.savefig("%s.png" % flag)
-        pyplot.clf # clear fig to prevent T plots being stored in memory
+        #pyplot.clf() # clear fig to prevent T plots being stored in memory
+#        pyplot.show()
 
 
 # run functions
@@ -226,3 +227,4 @@ pyplot.plot(YYlist,label='Slope Volume')
 pyplot.plot(Zlist,label='Flat coverage')
 pyplot.plot(ZZlist,label='Flat Volume')
 pyplot.legend(loc='best')
+pyplot.show()
