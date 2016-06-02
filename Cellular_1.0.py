@@ -9,7 +9,7 @@ Created on Tuesday April 26 07:07:54 2016
 
 import numpy as np
 import matplotlib.pyplot as pyplot
-
+import time
 import copy
 
 Xlist = []
@@ -245,10 +245,14 @@ def cellrules(grid_x_slope_length,grid_x,Idel,del_area,grid_y,coverage,singlelay
 # Evolve surface over time, plot and save result per timestep
 
 def run(ticks,grid_x_slope_length,grid_x,Idel,del_area,grid_y,coverage,singlelayer_speed,multilayer_speed,flatspeed,drop_zone):
-    for t in np.arange(1,ticks,1):
-        print(grid_x_slope_length)
+    
+    for tick in np.arange(1,ticks,1):
+
+        starttime = time.time()
         cellrules(grid_x_slope_length,grid_x,Idel,del_area,grid_y,coverage,singlelayer_speed,multilayer_speed,flatspeed,drop_zone)
-        flag = 'CAmovie%s' % str(t)    
+        endtime = time.time()
+
+        flag = 'CAmovie%s' % str(tick)    
         pyplot.figure(figsize=(12,12))
         pyplot.imshow(grid, cmap='coolwarm',label=flag)
         cbar=pyplot.colorbar(ticks=[0,1,2,3,4,5,6,7,8,9],orientation='horizontal')
@@ -257,7 +261,9 @@ def run(ticks,grid_x_slope_length,grid_x,Idel,del_area,grid_y,coverage,singlelay
  #       plt.savefig("%s.png" % flag)
         #pyplot.clf() # clear fig to prevent ticks plots being stored in memory
 #        pyplot.show()
+        
 
+        print("tick: {} complete:\n\tItteration took {:0.4f}s".format(tick, endtime - starttime))
 
 # run functions
 
