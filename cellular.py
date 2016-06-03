@@ -12,8 +12,9 @@ np.random.seed(0)
 import matplotlib.pyplot as pyplot
 import time
 import copy
-import matplotlib.animation as ani
-
+import platform
+import os
+import subprocess as sp
 
 
 def init_grid(x, y, coverage, sediment=7, probability=None):
@@ -137,7 +138,7 @@ def grid_stats(slope_length, grid,  print_to_stdout=True):
 
 
 def init_plot():
-    pyplot.ion()
+    pyplot.ioff()
     fig = pyplot.figure(figsize=(12, 12))
     return fig
 
@@ -151,16 +152,17 @@ def plot_grid(grid, tick=0, show=False, save=False, fig=None):
     pyplot.title = ('Sediment density at time: {}'.format(tick))
 
     flag = 'CAmovie%s' % str(tick)    
-    pyplot.imshow(grid, cmap='coolwarm', label=flag)
+    pyplot.imshow(grid, cmap='coolwarm', label=flag, vmin=0, vmax=50)
     fig.canvas.draw()
-    cbar=pyplot.colorbar(ticks=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], orientation='horizontal')
+    cbar=pyplot.colorbar(ticks=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], orientation='horizontal')
     pyplot.tick_params(axis='y', direction='out')
     pyplot.tick_params(axis='x', direction='out')
     if show:
+        pyplot.ion()
         pyplot.show()
 
     if save:
-        plt.savefig("%s.png" % flag)
+        fig.savefig(os.path.join('tmp_image', "%s.png" % flag))
     pyplot.clf() # clear fig to prevent ticks plots being stored in memory
         
 
@@ -265,12 +267,45 @@ def report():
     pyplot.legend(loc='best')
     pyplot.show()
 
+def clense_tmp_images():
+    # delete any files saved from previous runs
+    for ext in ["bmp", "png"]:
+        path = os.path.join('tmp_images', '*.{}'.format(ext))
+        for f in glob.glob(path):
+            os.unlink(f) 
+
+def generate_video(video_filename, image_format,  ffmpeg_exe, size, video_length=None, fps=5):
+    size_str = '{}x{}'.format(1200, 891)
+    command = [ffmpeg_exe,]
+    if video_length is not None:
+        command.extend(['-t', '{}'.format(video_length)])
+    command.extend([
+        '-y',  # (optional) overwrite output file if it exists
+        '-r', '{}'.format(fps),  # frames per second
+        '-i', os.path.join('tmp_image', 'CAmovie%d.{}'.format(image_format)),
+        '-s', size_str,
+        '-an',  # Tells FFMPEG not to expect any audio
+        '-c:v', 'qtrle',
+        '-tune', 'animation',
+        '-q', '0',
+        '-s', size_str,  # size of one frame
+        '{}.mov'.format(video_filename)
+        ]
+    )
+    #print (' '.join(command))
+    sp.call(command)
 
 # Evolve surface over time, plot and save result per timestep
 def run(grid, ticks, slope_length, ticks_per_delivery, delivery_zone, coverage,  singlelayer_speed, multilayer_speed, flat_speed, drop_zone):
+
+
+
+
     tick = 0
     fig = init_plot()
-    plot_grid(grid, tick=0, show=True, save=False, fig=fig)
+    show_live_plots = True
+    save_images = False
+    plot_grid(grid, tick=0, show=show_live_plots, save=save_images, fig=fig)
     for i in range(ticks):
         starttime = time.time()
         grid = update_grid(grid, slope_length, singlelayer_speed, multilayer_speed,  flat_speed, ticks_per_delivery)
@@ -281,14 +316,21 @@ def run(grid, ticks, slope_length, ticks_per_delivery, delivery_zone, coverage, 
         endtime = time.time()
         print("tick: {} complete:\n\tItteration took {:0.4f}s".format(tick, endtime - starttime))
         tick += 1
-        
-        plot_grid(grid, tick=tick, show=True, save=False, fig=fig)
+        plot_grid(grid, tick=tick, show=show_live_plots, save=save_images, fig=fig)
+        #input() 
+
+    
 
 # run functions
 if __name__ == "__main__":
+    if 'windows' in platform.platform().lower():
+            ffmpeg_exe = 'C:\\Users\\admin\\Desktop\\ffmpeg-20150921-git-74e4948-win64-static\\bin\\ffmpeg.exe'
+    else:
+            ffmpeg_exe = 'ffmpeg'
+
     grid = init_grid(175, 150, coverage = 0.15)
     run(    grid,
-            ticks=250,
+            ticks=20,
             slope_length=150,
             ticks_per_delivery = 30,
             delivery_zone = 10,
@@ -297,5 +339,6 @@ if __name__ == "__main__":
             multilayer_speed=0.7,
             flat_speed=0.2,
             drop_zone=6
-        )
+       )
 
+    generate_video('video','png', 'ffmpeg', grid.shape, fps=1)
