@@ -12,6 +12,7 @@ np.random.seed(0)
 import matplotlib.pyplot as pyplot
 import time
 import copy
+import matplotlib.animation as ani
 
 
 
@@ -58,6 +59,7 @@ def add_sediment(grid, deposit_zone):
         for j in np.arange(0, grid.shape[1]-1, 1):
             # TODO: I suspect this is a bug and should be grid[i, j] += np.random.choice(..
             # remove existing sediment and replace with a random amount of sediment
+            # this was a bug, changed to +=
             grid[i, j] += np.random.choice(
                     [0, 1, 2, 3, 4, 5, 6, 7], 
                     p=[1-coverage, coverage/7, coverage/7, coverage/7, coverage/7, coverage/7, coverage/7, coverage/7]
@@ -134,13 +136,23 @@ def grid_stats(slope_length, grid,  print_to_stdout=True):
 
 
 
+def init_plot():
+    pyplot.ion()
+    fig = pyplot.figure(figsize=(12, 12))
+    return fig
 
-def plot_grid(grid, tick=0, show=False, save=False):        
-    pyplot.figure(figsize=(12, 12))
+def plot_grid(grid, tick=0, show=False, save=False, fig=None):        
+    if fig is not None:
+        pass
+        #fig.canvas.clear()
+    else:
+        fig = pyplot.figure(figsize=(12, 12))
+        
     pyplot.title = ('Sediment density at time: {}'.format(tick))
 
     flag = 'CAmovie%s' % str(tick)    
     pyplot.imshow(grid, cmap='coolwarm', label=flag)
+    fig.canvas.draw()
     cbar=pyplot.colorbar(ticks=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], orientation='horizontal')
     pyplot.tick_params(axis='y', direction='out')
     pyplot.tick_params(axis='x', direction='out')
@@ -149,12 +161,12 @@ def plot_grid(grid, tick=0, show=False, save=False):
 
     if save:
         plt.savefig("%s.png" % flag)
-        pyplot.clf() # clear fig to prevent ticks plots being stored in memory
+    pyplot.clf() # clear fig to prevent ticks plots being stored in memory
         
 
 
 def update_grid(grid, slope_length, slope_singlelayer_speed, slope_multilayer_speed, flat_speed, ticks_per_delivery):
-    def move(direction):
+    def move(grid, i, j, direction):
         # decrement one unit of sediment from current cell 
         grid[i, j] -= 1
 
@@ -190,21 +202,20 @@ def update_grid(grid, slope_length, slope_singlelayer_speed, slope_multilayer_sp
         # TODO: check if this is a bug, 
 	# the loop is skips the left-most and rightmost columns, so material can 
 	# fall off the side of the grid, but it is not able to re-enter
+        # as planned
 	#
 	# TODO: check if bug that you are not using a buffer.
 	# as material moves down the slope, it will be picked up in the next itteration of the grid_x loop.
 	# so it is perfectly possible for sediment to be deposited at the top of the slope and traerse the whole slope in one itteration.
+        # this is a bug. need to use temp array
 	
         for j in np.arange(1, grid.shape[1] - 1, 1):       
             # if the volume of sediment on the grid is a single layer
             if grid[i, j] == 1 and single_chance_of_moving[i,j] > 0:
                 
-                #if QQ == 0:                 
-                #    new_grid[i, j] = grid[i, j] 
-
             #     if single_chance_of_moving[i,j] > 0:
                     #Q=np.random.choice([1, 2, 3], p=(0.34, 0.33, 0.33))
-                    move(single_chance_of_moving[i,j])        
+                    move(new_grid, i, j, single_chance_of_moving[i,j])        
 
             # if cell is still populated with more than one layer
             elif grid[i, j] > 1 and multi_chance_of_moving[i,j] > 0:
@@ -215,7 +226,7 @@ def update_grid(grid, slope_length, slope_singlelayer_speed, slope_multilayer_sp
 		#move one layer of sediment
             #    if multi_chance_of_moving[i,j] > 0:
                     #Q=np.random.choice([1, 2, 3], p=(0.34, 0.33, 0.33))
-                    move(multi_chance_of_moving[i,j])	     
+                    move(new_grid, i, j, multi_chance_of_moving[i,j])	     
          
     # loop over all the cells not on a slope 
     for i in np.arange(slope_length-1, grid.shape[0]-1, 1):
@@ -227,9 +238,9 @@ def update_grid(grid, slope_length, slope_singlelayer_speed, slope_multilayer_sp
                 #if QQQ == 1:
                     # move sediment straight if single layer
                 if grid[i, j] == 1:
-                    move(1)
+                    move(new_grid, i, j, 1)
                 else:        
-                    move(flat_chance_of_moving[i,j])
+                    move(new_grid, i, j, flat_chance_of_moving[i,j])
 
 
                     # if is now a multi layer then choose a direction to move 
@@ -240,7 +251,7 @@ def update_grid(grid, slope_length, slope_singlelayer_speed, slope_multilayer_sp
 #                    if grid[i, j] > 1:
 #                        QQQQ = np.random.choice((1, 2, 3), p=[0.4, 0.3, 0.3])
 #                        move(QQQQ) 
-    return grid
+    return new_grid
 
 
 def report():
@@ -254,31 +265,32 @@ def report():
     pyplot.legend(loc='best')
     pyplot.show()
 
+
 # Evolve surface over time, plot and save result per timestep
 def run(grid, ticks, slope_length, ticks_per_delivery, delivery_zone, coverage,  singlelayer_speed, multilayer_speed, flat_speed, drop_zone):
-     
-    #plot_grid(grid, tick=0, save=False)
-    for tick in np.arange(1, ticks, 1):
+    tick = 0
+    fig = init_plot()
+    plot_grid(grid, tick=0, show=True, save=False, fig=fig)
+    for i in range(ticks):
         starttime = time.time()
-        next_grid =  update_grid(grid, slope_length, singlelayer_speed, multilayer_speed,  flat_speed, ticks_per_delivery)
+        grid = update_grid(grid, slope_length, singlelayer_speed, multilayer_speed,  flat_speed, ticks_per_delivery)
         if tick % ticks_per_delivery == 0:
             add_sediment(grid, (0, delivery_zone)) 
         remove_sediment(grid, (grid.shape[0]-drop_zone, grid.shape[0]))  
         grid_stats(slope_length, grid[:-drop_zone,])
         endtime = time.time()
-
-        plot_grid(grid, tick=tick, save=False)
         print("tick: {} complete:\n\tItteration took {:0.4f}s".format(tick, endtime - starttime))
+        tick += 1
+        
+        plot_grid(grid, tick=tick, show=True, save=False, fig=fig)
 
 # run functions
 if __name__ == "__main__":
     grid = init_grid(175, 150, coverage = 0.15)
-
-    # define automaton rules
     run(    grid,
-            ticks=5,
+            ticks=250,
             slope_length=150,
-            ticks_per_delivery = 3,
+            ticks_per_delivery = 30,
             delivery_zone = 10,
             coverage = 0.15,
             singlelayer_speed=0.3,
@@ -286,6 +298,4 @@ if __name__ == "__main__":
             flat_speed=0.2,
             drop_zone=6
         )
-    pyplot.show()
-#    report()
 
