@@ -53,8 +53,13 @@ def deposit_sediment(grid, deposit_zone, sediment=7, probability=None, coverage=
 
     grid[:deposit_zone, :] += deposit
 
+    io = sediment_summary(deposit)
+    log.info('{1} sediment added over {0} cells.'.format(*io))
+    return io
+
 
 def remove_sediment(grid, dropzone):
+    log = logging.getLogger('sediment.remove')
     # Remove all check to ensure that no negative values.
     for i in np.arange(1, grid.shape[0] - 1, 1):
         for j in np.arange(1, grid.shape[1] - 1, 1):
@@ -63,24 +68,26 @@ def remove_sediment(grid, dropzone):
                 grid[i, j] = 0
 
     # Remove all sediment in the buffer zone at the end of the grid
-
     grid[dropzone[0]:dropzone[1], :] = 0
+
+    io = sediment_summary(grid[dropzone[0]:dropzone[1], :])
+    log.info('{1} sediment removed from {0} cells.'.format(*io))
+    return io
 
     # for i in np.arange(dropzone[0], dropzone[1], 1):
     #     for j in np.arange(0, grid.shape[1], 1):
     #         grid[i, j] = 0
 
 
-
-
+def sediment_summary(grid):
+    return np.count_nonzero(grid), np.sum(grid)
 
 def grid_stats(slope_length, grid):
-    def get_summary(grid):
-        return np.count_nonzero(grid), np.sum(grid)
 
-    cells_with_sediment, sediment_on_grid = get_summary(grid[1:, 1:-1])
-    slope_cells_with_sediment, sediment_on_slope = get_summary(grid[1:slope_length, 1:])
-    flat_cells_with_sediment, sediment_on_flat = get_summary(grid[slope_length:, 1:])
+
+    cells_with_sediment, sediment_on_grid = sediment_summary(grid[1:, 1:-1])
+    slope_cells_with_sediment, sediment_on_slope = sediment_summary(grid[1:slope_length, 1:])
+    flat_cells_with_sediment, sediment_on_flat = sediment_summary(grid[slope_length:, 1:])
 
     log = logging.getLogger('')
     log.info('total coverage: {}'.format(cells_with_sediment))
@@ -225,7 +232,7 @@ def clense_tmp_images():
 
 
 def generate_video(video_filename, image_format, ffmpeg_exe, size, video_length=None, fps=5):
-    size_str = '{}x{}'.format(1200, 891)
+    size_str = '{}x{}'.format(*size)
     command = [ffmpeg_exe, ]
     if video_length is not None:
         command.extend(['-t', '{}'.format(video_length)])
@@ -235,25 +242,31 @@ def generate_video(video_filename, image_format, ffmpeg_exe, size, video_length=
         '-i', os.path.join('tmp_image', 'CAmovie%d.{}'.format(image_format)),
         '-s', size_str,
         '-an',  # Tells FFMPEG not to expect any audio
-        '-c:v', 'qtrle',
-        '-tune', 'animation',
+        '-c:v', 'mjpeg',
+        '-pix_fmt', 'yuvj420p',
         '-q', '0',
         '-s', size_str,  # size of one frame
-        '{}.mov'.format(video_filename)
+        '{}.avi'.format(video_filename)
     ]
     )
-    # print (' '.join(command))
+    print(' '.join(command))
     sp.call(command)
 
 
 # Evolve surface over time, plot and save result per timestep
 def evolve(grid, tick, slope_length, singlelayer_speed, multilayer_speed, flat_speed, ticks_per_delivery, delivery_zone, coverage, drop_zone):
-    #logging.getLogger().info('Tick: {}'.format(tick))
+    log = logging.getLogger()#
+    #log.info('Tick: {}'.format(tick))
     grid = update_grid(grid, slope_length, singlelayer_speed, multilayer_speed, flat_speed)
     if tick % ticks_per_delivery == 0:
-        deposit_sediment(grid, delivery_zone, coverage=coverage)
-    remove_sediment(grid, (grid.shape[0] - drop_zone, grid.shape[0]))
+        io = deposit_sediment(grid, delivery_zone, coverage=coverage)
+        log.info(''.format(*io))
+
+    io = remove_sediment(grid, (grid.shape[0] - drop_zone, grid.shape[0]))
+
     grid_stats(slope_length, grid[:-drop_zone, ])
+
+
     return grid
 
 
@@ -284,7 +297,7 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
 
     if 'windows' in platform.platform().lower():
-        ffmpeg_exe = 'C:\\Users\\admin\\Desktop\\ffmpeg-20150921-git-74e4948-win64-static\\bin\\ffmpeg.exe'
+        ffmpeg_exe = 'c:\\Program Files (x86)\\ffmpeg-20160531-git-a1953d4-win64-static\\bin\\ffmpeg.exe'
     else:
         ffmpeg_exe = 'ffmpeg'
 
@@ -294,7 +307,7 @@ if __name__ == "__main__":
     clense_tmp_images()
 
     run(grid,
-        ticks=300,
+        ticks=5,
         slope_length=450,
         ticks_per_delivery=5,
         delivery_zone=2,
@@ -305,4 +318,4 @@ if __name__ == "__main__":
         drop_zone=1
         )
 
-    generate_video('video', 'png', 'ffmpeg', grid.shape, fps=1)
+    generate_video('video', 'png', ffmpeg_exe, (1200, 1200), fps=1)
