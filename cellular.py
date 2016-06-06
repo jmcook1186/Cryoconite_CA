@@ -8,26 +8,88 @@ Created on Tuesday April 26 07:07:54 2016
 """
 
 import numpy as np
-
 np.random.seed(0)
-import matplotlib.pyplot as pyplot
+
 import time
 import platform
-import os
-import subprocess as sp
 import logging
-import glob
-import sys
+from collections import namedtuple
+
+
+
+
+
+# define a named tuple for the experimental parameters
+config_tuple = namedtuple('experiment_config', ' coverage  slope_length '
+                                               ' ticks_per_delivery delivery_zone'
+                                               ' singlelayer_speed multilayer_speed '
+                                               ' flat_speed drop_zone'
+                                               ' slope_direction_probability flat_direction_probability'
+                                               ' max_sediment_per_deposit'
+                          )
+
+class Experiment(object):
+    def __init__(self, x, y,
+                 coverage,
+                 slope_length,
+                 ticks_per_delivery, delivery_zone,
+                 singlelayer_speed, multilayer_speed,
+                flat_speed, drop_zone):
+
+        self.grid = init_grid(x, y, coverage)
+        self.age = 0
+        self.config = config_tuple(
+            coverage,
+            slope_length,
+            ticks_per_delivery,
+            delivery_zone,
+            singlelayer_speed,
+            multilayer_speed,
+            flat_speed,
+            drop_zone,
+            np.array((0.34, 0.33, 0.33)),
+            np.array((0.4, 0.3, 0.3)),
+            max_sediment_per_deposit=7
+        )
+
+        # self.coverage = coverage
+        # self.slope_length = slope_length
+        # self.ticks_per_delivery = ticks_per_delivery
+        # self.delivery_zone = delivery_zone
+        # self.singlelayer_speed = singlelayer_speed
+        # self.multilayer_speed = multilayer_speed
+        # self.flat_speed = flat_speed
+        # self.drop_zone = drop_zone
+
+    def remove_sediment(self):
+        remove_sediment(self.grid, (self.grid.shape[0] - self.config.drop_zone, self.grid.shape[0]))
+
+    def add_sediment(self):
+        deposit_sediment(self.grid,
+                         self.config.delivery_zone,
+                         self.config.max_sediment_per_deposit,
+                         coverage=self.config.coverage
+                         )
+
+    def tick(self):
+        if self.age % self.config.ticks_per_delivery == 0:
+            self.add_sediment()
+        self.remove_sediment()
+
+        self.grid = update_grid(self.grid, self.config.slope_length, self.config.singlelayer_speed,
+                    self.config.multilayer_speed, self.config.flat_speed)
+
+        grid_stats(self.config.slope_length, self.grid[:-self.config.drop_zone, ])
+        self.age += 1
 
 
 def init_grid(x, y, coverage, sediment=7, probability=None):
-    print(coverage)
     grid = np.zeros((x, y))
     deposit_sediment(grid, x, sediment, probability, coverage)
     return grid
 
 def deposit_sediment(grid, deposit_zone, sediment=7, probability=None, coverage=0.15):
-    log = logging.getLogger()
+    log = logging.getLogger('sediment.add')
 
     try:
         sediment = int(sediment)
@@ -41,9 +103,7 @@ def deposit_sediment(grid, deposit_zone, sediment=7, probability=None, coverage=
         probability.extend((coverage / (len(sediment_choice) - 1),) * (len(sediment_choice) - 1))
 
 
-    log.info('adding sediment in the area {}x{} with coverage {:0.3f} with amounts: {} '.format(deposit_zone, grid.shape[1], coverage, ', '.join([str(i) for i in sediment_choice])))
-    #print(((deposit_zone, grid.shape[1], coverage, ', '.join([str(i) for i in sediment_choice]))))
-    #print('adding sediment in the area {}x{} with coverage {:0.3f} with amounts: {} '.format(deposit_zone, grid.shape[1], coverage, ', '.join([str(i) for i in sediment_choice])))
+    #log.info('adding sediment in the area {}x{} with coverage {:0.3f} with amounts: {} '.format(deposit_zone, grid.shape[1], coverage, ', '.join([str(i) for i in sediment_choice])))
 
     deposit = np.random.choice(
         sediment_choice,
@@ -54,7 +114,7 @@ def deposit_sediment(grid, deposit_zone, sediment=7, probability=None, coverage=
     grid[:deposit_zone, :] += deposit
 
     io = sediment_summary(deposit)
-    log.info('{1} sediment added over {0} cells.'.format(*io))
+    log.info('{1} sediment added over {0} cells in the area {2}x{3}'.format(*io, deposit_zone, grid.shape[1]))
     return io
 
 
@@ -87,10 +147,10 @@ def grid_stats(slope_length, grid):
 
 
     cells_with_sediment, sediment_on_grid = sediment_summary(grid[1:, 1:-1])
-    slope_cells_with_sediment, sediment_on_slope = sediment_summary(grid[1:slope_length, 1:])
-    flat_cells_with_sediment, sediment_on_flat = sediment_summary(grid[slope_length:, 1:])
+    slope_cells_with_sediment, sediment_on_slope = sediment_summary(grid[1:slope_length, 1:-1])
+    flat_cells_with_sediment, sediment_on_flat = sediment_summary(grid[slope_length:, 1:-1])
 
-    log = logging.getLogger('')
+    log = logging.getLogger('summary')
     log.info('total coverage: {}'.format(cells_with_sediment))
     log.info('coverage on slope: {}'.format(slope_cells_with_sediment))
     log.info('Volume on Slope: {}'.format(sediment_on_slope))
@@ -107,6 +167,7 @@ def grid_stats(slope_length, grid):
     )
 
 
+<<<<<<< HEAD
 def init_plot():
     pyplot.ioff()
     fig = pyplot.figure(figsize=(12, 12))
@@ -136,8 +197,11 @@ def plot_grid(grid, tick=0, show=False, save=False, fig=None):
         fig.savefig(os.path.join('tmp_image', "%s.png" % flag))
     pyplot.clf()  # clear fig to prevent ticks plots being stored in memory
 
+=======
+>>>>>>> 96b33d720eccb46cd5aad90ac5625104e5649b0b
 
 def update_grid(grid, slope_length, slope_singlelayer_speed, slope_multilayer_speed, flat_speed):
+    log = logging.getLogger('tick')
     def move(grid, i, j, direction):
         # decrement one unit of sediment from current cell
         grid[i, j] -= 1
@@ -170,12 +234,13 @@ def update_grid(grid, slope_length, slope_singlelayer_speed, slope_multilayer_sp
 
 
     flat_direction_probability = np.array((0.4, 0.3, 0.3))
-    p =  [1 - flat_speed]
+    p = [1 - flat_speed]
     p.extend(flat_direction_probability * flat_speed)
     flat_chance_of_moving = np.random.choice([0, 1, 2, 3],
                                              grid.shape,
                                              p=p
                                              )
+
 
     # for each cell on the slope
     for i in np.arange(0, slope_length, 1):
@@ -206,93 +271,106 @@ def update_grid(grid, slope_length, slope_singlelayer_speed, slope_multilayer_sp
                 elif grid[i, j] > 1:
                     move(new_grid, i, j, flat_chance_of_moving[i, j])
 
+
+
+    #log.info('{} sediment from {} cells moved on slope'.format())
+    #log.info('{} sediment from {} cells moved from slope to flat'.format())
+    #log.info('{} sediment from {} cells moved on flat'.format())
+
     return new_grid
 
 
-# def report():
-#     pyplot.figure(figsize=(10, 10))
-#     pyplot.plot(Xlist, label='Total coverage')
-#     pyplot.plot(XXlist, label='total Volume')
-#     pyplot.plot(Ylist, label='Slope coverage')
-#     pyplot.plot(YYlist, label='Slope Volume')
-#     pyplot.plot(Zlist, label='Flat coverage')
-#     pyplot.plot(ZZlist, label='Flat Volume')
-#     pyplot.legend(loc='best')
-#     pyplot.show()
-
-def clense_tmp_images():
-    # delete any files saved from previous runs
-    log = logging.getLogger()
-    for ext in ["bmp", "png"]:
-        path = os.path.join('tmp_images', '*.{}'.format(ext))
-        files_for_deletion = glob.glob(path)
-        if len(files_for_deletion) > 0:
-            log.warn('deleted {} images from previous run.'.format(len(files_for_deletion)))
-            for f in files_for_deletion:
-                os.unlink(f)
-
-
-def generate_video(video_filename, image_format, ffmpeg_exe, size, video_length=None, fps=5):
-    size_str = '{}x{}'.format(*size)
-    command = [ffmpeg_exe, ]
-    if video_length is not None:
-        command.extend(['-t', '{}'.format(video_length)])
-    command.extend([
-        '-y',  # (optional) overwrite output file if it exists
-        '-r', '{}'.format(fps),  # frames per second
-        '-i', os.path.join('tmp_image', 'CAmovie%d.{}'.format(image_format)),
-        '-s', size_str,
-        '-an',  # Tells FFMPEG not to expect any audio
-        '-c:v', 'mjpeg',
-        '-pix_fmt', 'yuvj420p',
-        '-q', '0',
-        '-s', size_str,  # size of one frame
-        '{}.avi'.format(video_filename)
-    ]
-    )
-    print(' '.join(command))
-    sp.call(command)
 
 
 # Evolve surface over time, plot and save result per timestep
-def evolve(grid, tick, slope_length, singlelayer_speed, multilayer_speed, flat_speed, ticks_per_delivery, delivery_zone, coverage, drop_zone):
-    log = logging.getLogger()#
-    #log.info('Tick: {}'.format(tick))
-    grid = update_grid(grid, slope_length, singlelayer_speed, multilayer_speed, flat_speed)
-    if tick % ticks_per_delivery == 0:
-        io = deposit_sediment(grid, delivery_zone, coverage=coverage)
-        log.info(''.format(*io))
+def evolve(grid, add_sediment, delete_sediment, slope_length, singlelayer_speed, multilayer_speed, flat_speed, delivery_zone, coverage, drop_zone):
+    '''
+    apply rules to a surface and return the updated surface.
 
-    io = remove_sediment(grid, (grid.shape[0] - drop_zone, grid.shape[0]))
+    :param grid:
+    :param add_sediment: should we deposit sediment on the surface on this tick
+    :param delete_sediment: should we remove sediment from the surface on this tick
+    :param slope_length:
+    :param singlelayer_speed:
+    :param multilayer_speed:
+    :param flat_speed:
+    :param delivery_zone:
+    :param coverage:
+    :param drop_zone:
+    :return:
+    '''
+
+    grid = update_grid(grid, slope_length, singlelayer_speed, multilayer_speed, flat_speed)
+    if add_sediment:
+        deposit_sediment(grid, delivery_zone, coverage=coverage)
+    if delete_sediment:
+        remove_sediment(grid, (grid.shape[0] - drop_zone, grid.shape[0]))
 
     grid_stats(slope_length, grid[:-drop_zone, ])
-
 
     return grid
 
 
 def run(grid, ticks, slope_length, ticks_per_delivery, delivery_zone, coverage, singlelayer_speed, multilayer_speed,
         flat_speed, drop_zone):
+    '''
+
+
+    :param grid:
+    :param ticks:
+    :param slope_length:
+    :param ticks_per_delivery:
+    :param delivery_zone:
+    :param coverage:
+    :param singlelayer_speed:
+    :param multilayer_speed:
+    :param flat_speed:
+    :param drop_zone:
+    :return:
+    '''
     log = logging.getLogger()
-    tick = 0
-    fig = init_plot()
+
+
+    #decide if we are going to show plots online and if we are going save the images for creating the video at the end.
     show_live_plots = True
     save_images = True
-    plot_grid(grid, tick=0, show=show_live_plots, save=save_images, fig=fig)
-    for i in range(ticks):
+
+    # init plotting
+    fig = cell_view.init_plot()
+
+    # generate a plot of the initial conditions.
+    cell_view.plot_grid(grid, tick=0, show=show_live_plots, save=save_images, fig=fig)
+
+
+    for tick in range(ticks):
+        #start timer
         start_time = time.time()
+
+        # decide if we want to deposit more on the surface.
+        if tick % ticks_per_delivery == 0:
+            add_sediment = True
+        else:
+            add_sediment = False
+
+        # do the tick and update the grid
         grid = evolve(
-            grid, tick, slope_length, singlelayer_speed, multilayer_speed, flat_speed, ticks_per_delivery,
-            delivery_zone, coverage, drop_zone
+            grid,
+            add_sediment, True,
+            slope_length,
+            singlelayer_speed, multilayer_speed, flat_speed, delivery_zone, coverage, drop_zone
         )
+
+        #stop timer and report how long the tick took in realtime
         end_time = time.time()
         log.info("tick: {} complete:\n\tIterations took {:0.4f}s".format(tick, end_time - start_time))
-        tick += 1
-        plot_grid(grid, tick=tick, show=show_live_plots, save=save_images, fig=fig)
+
+        # plot the new data
+        cell_view.plot_grid(grid, tick=tick, show=show_live_plots, save=save_images, fig=fig)
 
 
 # run functions
 if __name__ == "__main__":
+    import cell_view
 
     logging.basicConfig()
     logging.getLogger().setLevel(logging.INFO)
@@ -305,7 +383,7 @@ if __name__ == "__main__":
     grid = init_grid(640, 480, coverage=0.15)
 
 
-    clense_tmp_images()
+    cell_view.clense_tmp_images()
 
     run(grid,
         ticks=5,
@@ -318,5 +396,4 @@ if __name__ == "__main__":
         flat_speed=0.2,
         drop_zone=1
         )
-
-    generate_video('video', 'png', ffmpeg_exe, (1200, 1200), fps=1)
+    cell_view.generate_video('video', 'png', ffmpeg_exe, (1200, 1200), fps=1)
