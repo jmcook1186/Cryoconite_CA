@@ -11,7 +11,6 @@ import numpy as np
 np.random.seed(0)
 
 import time
-import platform
 import logging
 from collections import namedtuple
 
@@ -114,7 +113,7 @@ def deposit_sediment(grid, deposit_zone, sediment=7, probability=None, coverage=
     grid[:deposit_zone, :] += deposit
 
     io = sediment_summary(deposit)
-    log.info('{1} sediment added over {0} cells in the area {2}x{3}'.format(*io, deposit_zone, grid.shape[1]))
+    log.info('{1} sediment added over {0} cells in the area {2}x{3}'.format(io[0], io[1], deposit_zone, grid.shape[1]))
     return io
 
 
@@ -166,6 +165,35 @@ def grid_stats(slope_length, grid):
         sediment_on_flat
     )
 
+
+def init_plot():
+    pyplot.ioff()
+    fig = pyplot.figure(figsize=(12, 12))
+    return fig
+
+
+def plot_grid(grid, tick=0, show=False, save=False, fig=None):
+    if fig is not None:
+        pass
+        # fig.canvas.clear()
+    else:
+        fig = pyplot.figure(figsize=(12, 12))
+
+    pyplot.title = ('Sediment density at time: {}'.format(tick))
+
+    flag = 'CAmovie%s' % str(tick)
+    pyplot.imshow(grid, cmap='coolwarm', label=flag, vmin=0, vmax=20)
+    fig.canvas.draw()
+    cbar = pyplot.colorbar(ticks=np.arange(0,20,1), orientation='horizontal')
+    pyplot.tick_params(axis='y', direction='out')
+    pyplot.tick_params(axis='x', direction='out')
+    if show:
+        pyplot.ion()
+        pyplot.show()
+
+    if save:
+        fig.savefig(os.path.join('tmp_image', "%s.png" % flag))
+    pyplot.clf()  # clear fig to prevent ticks plots being stored in memory
 
 
 def update_grid(grid, slope_length, slope_singlelayer_speed, slope_multilayer_speed, flat_speed):
