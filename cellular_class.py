@@ -7,11 +7,6 @@ import time
 logging.basicConfig()
 logging.getLogger().setLevel(logging.INFO)
 
-if 'windows' in platform.platform().lower():
-    ffmpeg_exe = 'c:\\Program Files (x86)\\ffmpeg-20160531-git-a1953d4-win64-static\\bin\\ffmpeg.exe'
-else:
-    ffmpeg_exe = 'ffmpeg'
-
 
 
 
@@ -40,7 +35,7 @@ def run_experiment_MPL(ex, show_plots=True, save_images=True, ticks=50):
 
         # plot the new data
         cell_view.plot_grid(ex.grid, tick=ex.age, show=show_live_plots, save=save_images, fig=fig)
-
+    cell_view.generate_video('video', 'png', cell_view.get_ffmpeg_path(), (1200, 1200), fps=1)
 
 
 ex1 = cellular.Experiment(640, 480,

@@ -4,6 +4,15 @@ import logging
 import glob
 import subprocess as sp
 
+def get_ffmpeg_path():
+    if 'windows' in platform.platform().lower():
+        ffmpeg_exe = 'c:\\Program Files (x86)\\ffmpeg-20160531-git-a1953d4-win64-static\\bin\\ffmpeg.exe'
+    else:
+        ffmpeg_exe = 'ffmpeg'
+
+        return ffmpeg_exe
+
+
 
 def init_plot():
     pyplot.ioff()
