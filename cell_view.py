@@ -10,8 +10,7 @@ def get_ffmpeg_path():
         ffmpeg_exe = 'c:\\Program Files (x86)\\ffmpeg-20160531-git-a1953d4-win64-static\\bin\\ffmpeg.exe'
     else:
         ffmpeg_exe = 'ffmpeg'
-
-        return ffmpeg_exe
+    return ffmpeg_exe
 
 
 
