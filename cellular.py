@@ -67,10 +67,11 @@ def remove_sediment(grid, dropzone):
                 logging.getLogger().warn('found illegal value({}) at {},{}'.format(grid[i, j], i, j))
                 grid[i, j] = 0
 
+    io = sediment_summary(grid[dropzone[0]:dropzone[1], :])
+
     # Remove all sediment in the buffer zone at the end of the grid
     grid[dropzone[0]:dropzone[1], :] = 0
 
-    io = sediment_summary(grid[dropzone[0]:dropzone[1], :])
     log.info('{1} sediment removed from {0} cells.'.format(*io))
     return io
 
