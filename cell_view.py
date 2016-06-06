@@ -19,7 +19,6 @@ def init_plot():
     fig = pyplot.figure(figsize=(12, 12))
     return fig
 
-
 def plot_grid(grid, tick=0, show=False, save=False, fig=None):
     if fig is not None:
         pass
@@ -30,9 +29,9 @@ def plot_grid(grid, tick=0, show=False, save=False, fig=None):
     pyplot.title = ('Sediment density at time: {}'.format(tick))
 
     flag = 'CAmovie%s' % str(tick)
-    pyplot.imshow(grid, cmap='coolwarm', label=flag, vmin=0, vmax=50)
+    pyplot.imshow(grid, cmap='coolwarm', label=flag, vmin=0, vmax=20)
     fig.canvas.draw()
-    cbar = pyplot.colorbar(ticks=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], orientation='horizontal')
+    cbar = pyplot.colorbar(ticks=np.arange(0,20,1), orientation='horizontal')
     pyplot.tick_params(axis='y', direction='out')
     pyplot.tick_params(axis='x', direction='out')
     if show:
