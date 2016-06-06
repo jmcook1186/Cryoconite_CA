@@ -11,7 +11,6 @@ import numpy as np
 np.random.seed(0)
 
 import time
-import platform
 import logging
 from collections import namedtuple
 

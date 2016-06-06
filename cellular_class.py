@@ -1,6 +1,5 @@
 import cellular
 import logging
-import platform
 import cell_view
 import time
 

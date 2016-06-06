@@ -3,6 +3,7 @@ import matplotlib.pyplot as pyplot
 import logging
 import glob
 import subprocess as sp
+import platform
 
 def get_ffmpeg_path():
     if 'windows' in platform.platform().lower():
