@@ -31,7 +31,7 @@ def plot_grid(grid, tick=0, show=False, save=False, fig=None):
     flag = 'CAmovie%s' % str(tick)
     pyplot.imshow(grid, cmap='coolwarm', label=flag, vmin=0, vmax=20)
     fig.canvas.draw()
-    cbar = pyplot.colorbar(ticks=np.arange(0,20,1), orientation='horizontal')
+    cbar = pyplot.colorbar(ticks=range(0,20), orientation='horizontal')
     pyplot.tick_params(axis='y', direction='out')
     pyplot.tick_params(axis='x', direction='out')
     if show:

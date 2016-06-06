@@ -8,9 +8,6 @@ logging.basicConfig()
 logging.getLogger().setLevel(logging.INFO)
 
 
-
-
-
 def run_experiment_MPL(ex, show_plots=True, save_images=True, ticks=50):
     log = logging.getLogger('Experiment')
 

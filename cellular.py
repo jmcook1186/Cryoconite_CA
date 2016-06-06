@@ -114,7 +114,7 @@ def deposit_sediment(grid, deposit_zone, sediment=7, probability=None, coverage=
     grid[:deposit_zone, :] += deposit
 
     io = sediment_summary(deposit)
-    log.info('{1} sediment added over {0} cells in the area {2}x{3}'.format(*io, deposit_zone, grid.shape[1]))
+    log.info('{1} sediment added over {0} cells in the area {2}x{3}'.format(io[0], io[1], deposit_zone, grid.shape[1]))
     return io
 
 
@@ -167,7 +167,6 @@ def grid_stats(slope_length, grid):
     )
 
 
-<<<<<<< HEAD
 def init_plot():
     pyplot.ioff()
     fig = pyplot.figure(figsize=(12, 12))
@@ -197,8 +196,6 @@ def plot_grid(grid, tick=0, show=False, save=False, fig=None):
         fig.savefig(os.path.join('tmp_image', "%s.png" % flag))
     pyplot.clf()  # clear fig to prevent ticks plots being stored in memory
 
-=======
->>>>>>> 96b33d720eccb46cd5aad90ac5625104e5649b0b
 
 def update_grid(grid, slope_length, slope_singlelayer_speed, slope_multilayer_speed, flat_speed):
     log = logging.getLogger('tick')
