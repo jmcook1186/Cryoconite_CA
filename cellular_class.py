@@ -2,9 +2,27 @@ import cellular
 import logging
 import cell_view
 import time
+import matplotlib.pyplot as pyplot
+import matplotlib.animation as animation
 
 logging.basicConfig()
 logging.getLogger().setLevel(logging.INFO)
+
+def run_experiment_MPL_ani(ex, show_plots=True, save_images=True, ticks=50):
+    log = logging.getLogger('Experiment')
+
+    fig = cell_view.init_plot(ex.grid)
+
+    def updatefig(n, ex, fig):
+        start_time = time.time()
+        cell_view.plot_grid(ex.tick(), ex.age, show=False, animated=True, fig=fig)
+        end_time = time.time()
+        log.info("tick: {} complete:\n\tIterations took {:0.4f}s".format(ex.age, end_time - start_time))
+
+    # you need to assign the result to a variable otherwise it fails..
+    ani = animation.FuncAnimation(fig, updatefig, interval=50, blit=False, fargs=(ex, fig))
+    pyplot.show()
+
 
 
 def run_experiment_MPL(ex, show_plots=True, save_images=True, ticks=50):
@@ -15,7 +33,7 @@ def run_experiment_MPL(ex, show_plots=True, save_images=True, ticks=50):
     save_images = save_images
 
     # init plotting
-    fig = cell_view.init_plot()
+    fig = cell_view.init_plot(ex.grid)
 
     # generate a plot of the initial conditions.
     cell_view.plot_grid(ex.grid, tick=0, show=show_live_plots, save=save_images, fig=fig)
@@ -46,7 +64,7 @@ ex1 = cellular.Experiment(640, 480,
     )
 
 
-run_experiment_MPL(ex1)
+run_experiment_MPL_ani(ex1)
 
 
 

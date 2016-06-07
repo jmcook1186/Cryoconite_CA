@@ -80,6 +80,7 @@ class Experiment(object):
 
         grid_stats(self.config.slope_length, self.grid[:-self.config.drop_zone, ])
         self.age += 1
+        return self.grid
 
 
 def init_grid(x, y, coverage, sediment=7, probability=None):
