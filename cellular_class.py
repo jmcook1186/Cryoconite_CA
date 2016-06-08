@@ -15,12 +15,12 @@ def run_experiment_MPL_ani(ex, show_plots=True, save_images=True, ticks=50):
 
     def updatefig(n, ex, fig):
         start_time = time.time()
-        cell_view.plot_grid(ex.tick(), ex.age, show=False, animated=True, fig=fig)
+        cell_view.plot_grid(ex.tick(), ex.age, show=False, save=True, animated=True, fig=fig)
         end_time = time.time()
         log.info("tick: {} complete:\n\tIterations took {:0.4f}s".format(ex.age, end_time - start_time))
 
     # you need to assign the result to a variable otherwise it fails..
-    ani = animation.FuncAnimation(fig, updatefig, interval=50, blit=False, fargs=(ex, fig))
+    ani = animation.FuncAnimation(fig, updatefig, frames=ticks, repeat=False, interval=50, blit=False, fargs=(ex, fig))
     pyplot.show()
 
 
