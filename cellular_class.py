@@ -15,12 +15,20 @@ def run_experiment_MPL_ani(ex, show_plots=True, save_images=True, ticks=50):
 
     def updatefig(n, ex, fig):
         start_time = time.time()
-        cell_view.plot_grid(ex.tick(), ex.age, show=False, save=True, animated=True, fig=fig)
+        ex.tick()
         end_time = time.time()
-        log.info("tick: {} complete:\n\tIterations took {:0.4f}s".format(ex.age, end_time - start_time))
+        tick_time = end_time - start_time
+
+
+        start_time = time.time()
+        cell_view.plot_grid(ex.grid, ex.age, show=False, save=True, animated=True, fig=fig)
+        end_time = time.time()
+        draw_time = end_time - start_time
+
+        log.info("tick: {} complete:\n\tGrid update took {:0.4f}s, drawing: {:0.4f}s".format(ex.age, tick_time, draw_time))
 
     # you need to assign the result to a variable otherwise it fails..
-    ani = animation.FuncAnimation(fig, updatefig, frames=ticks, repeat=False, interval=50, blit=False, fargs=(ex, fig))
+    ani = animation.FuncAnimation(fig, updatefig, frames=ticks, repeat=False, interval=1, blit=False, fargs=(ex, fig))
     pyplot.show()
 
 
@@ -52,19 +60,19 @@ def run_experiment_MPL(ex, show_plots=True, save_images=True, ticks=50):
     cell_view.generate_video('video', 'png', cell_view.get_ffmpeg_path(), (1200, 1200), fps=1)
 
 
-ex1 = cellular.Experiment(640, 480,
-    coverage=0.15,
-    slope_length=450,
-    ticks_per_delivery=5,
+ex1 = cellular.Experiment(200, 250,
+    coverage=0.015,
+    slope_length=175,
+    ticks_per_delivery=10,
     delivery_zone=2,
-    singlelayer_speed=0.3,
+    singlelayer_speed=0.2,
     multilayer_speed=0.7,
-    flat_speed=0.2,
+    flat_speed=0.1,
     drop_zone=1
     )
 
 
-run_experiment_MPL_ani(ex1)
+run_experiment_MPL_ani(ex1,ticks=50)
 
 
 
