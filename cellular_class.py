@@ -61,7 +61,7 @@ def run_experiment_MPL(ex, show_plots=True, save_images=True, ticks=50):
 
 
 ex1 = cellular.Experiment(200, 250,
-    coverage=0.015,
+    coverage=0.03,
     slope_length=175,
     ticks_per_delivery=10,
     delivery_zone=2,
@@ -74,19 +74,4 @@ ex1 = cellular.Experiment(200, 250,
 
 run_experiment_MPL_ani(ex1,ticks=50)
 
-
-
-# grid = cellular.init_grid(640, 480, coverage=0.15)
-# cellular.run(grid,
-#     ticks=5,
-#     slope_length=450,
-#     ticks_per_delivery=5,
-#     delivery_zone=2,
-#     coverage=0.15,
-#     singlelayer_speed=0.3,
-#     multilayer_speed=0.7,
-#     flat_speed=0.2,
-#     drop_zone=1
-#     )
-
-#cellular.generate_video('video', 'png', ffmpeg_exe, (1200, 1200), fps=1)
+# cell_view.generate_video('video', 'png', ffmpeg_exe, (1200, 1200), fps=1)
