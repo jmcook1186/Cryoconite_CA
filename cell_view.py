@@ -28,7 +28,7 @@ def init_plot(g, size=(12,12)):
 def plot_grid(grid, tick=0, show=False, save=False, fig=None, animated=False):
     if fig is None:
         fig = init_plot()
-
+    pyplot.cla()
     pyplot.title = ('Sediment density at time: {}'.format(tick))
 
     flag = 'CAmovie%s' % str(tick)
@@ -37,7 +37,8 @@ def plot_grid(grid, tick=0, show=False, save=False, fig=None, animated=False):
     if show:
         pyplot.ion()
         pyplot.show()
-
+    if not os.path.isdir('tmp_image'):
+        os.mkdir('tmp_image')
     if save:
         fig.savefig(os.path.join('tmp_image', "%s.png" % flag))
  #   pyplot.clf()  # clear fig to prevent ticks plots being stored in memory

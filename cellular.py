@@ -13,6 +13,7 @@ np.random.seed(0)
 import time
 import logging
 from collections import namedtuple
+import cell_view
 
 
 
