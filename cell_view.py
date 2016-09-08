@@ -17,8 +17,8 @@ def get_ffmpeg_path():
 def init_plot(g, size=(12,12)):
     pyplot.ioff()
     fig = pyplot.figure(figsize=size)
-    pyplot.imshow(g, cmap='coolwarm', vmin=0, vmax=10)
-    cbar = pyplot.colorbar(ticks=range(0, 11), orientation='horizontal')
+    pyplot.imshow(g, cmap='jet', vmin=0, vmax=5)
+    cbar = pyplot.colorbar(ticks=range(0, 5), orientation='horizontal')
     pyplot.tick_params(axis='y', direction='out')
     pyplot.tick_params(axis='x', direction='out')
 
@@ -32,7 +32,7 @@ def plot_grid(grid, tick=0, show=False, save=False, fig=None, animated=False):
     pyplot.title = ('Sediment density at time: {}'.format(tick))
 
     flag = 'CAmovie%s' % str(tick)
-    pyplot.imshow(grid, cmap='coolwarm', label=flag, vmin=0, vmax=20, animated=animated)
+    pyplot.imshow(grid, cmap='jet', label=flag, vmin=0, vmax=5, animated=animated)
 
     if show:
         pyplot.ion()
