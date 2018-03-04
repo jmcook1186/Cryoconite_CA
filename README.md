@@ -16,7 +16,7 @@ First, open the file 'cellular_class.py'. At the bottom of the script, in the cl
 
 Run the script in the command line by typing:
 
->> python celluklar_class.py
+>> python cellular_class.py
 
 Plots will appear and update in a detached window and a PNG file of each image will be saved to the tmp_image folder in the working directory.  
 
